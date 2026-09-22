@@ -11,7 +11,6 @@ os.chdir(APP_DIR)
 # Standalone bootstrap for module imports
 sys.path.insert(0, APP_DIR)
 
-from badgeware import display
 import time
 
 # Centre points for the display
@@ -156,9 +155,6 @@ class Tomato(object):
 
         if self.running and not self.paused:
 
-            # Dim the backlight when the timer is running
-            display.backlight(0.5)
-
             self.time_elapsed = time.time() - self.start_time
 
             if self.time_elapsed >= self.current_timer:
@@ -170,9 +166,6 @@ class Tomato(object):
                     else:
                         self.tasks_complete = 0
                 self.is_break_time = not self.is_break_time
-        else:
-            # restore the backlight to full brightness
-            display.backlight(1.0)
 
     # Return the remaining time formatted in a string for displaying with vector text.
     def return_string(self):
