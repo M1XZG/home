@@ -94,6 +94,7 @@ def update():
         ui.draw_button(55, 100, "reset", True)
 
     ui.draw_header()
+    ui.draw_clock()
 
 
 def init():

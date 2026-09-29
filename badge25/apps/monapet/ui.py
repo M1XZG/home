@@ -1,4 +1,5 @@
 import math
+import time
 from badgeware import screen, brushes, SpriteSheet, shapes, PixelFont, io
 
 # load user interface sprites
@@ -26,6 +27,9 @@ stats_icons = {
 # ui outline (contrast) colour
 outline_brush = brushes.color(20, 30, 40, 150)
 outline_brush_bold = brushes.color(20, 30, 40, 200)
+
+clock_text = "--:--"
+clock_updated_at = -1000
 
 # draw the background scenery
 def background(mona):
@@ -92,6 +96,21 @@ def draw_header():
 
     screen.brush = brushes.color(255, 255, 255)
     center_text("mona pet", 0)
+
+
+def draw_clock():
+    global clock_text, clock_updated_at
+
+    if io.ticks - clock_updated_at >= 1000:
+        now = time.localtime()
+        clock_text = "{:02d}:{:02d}".format(now[3], now[4])
+        clock_updated_at = io.ticks
+
+    screen.brush = outline_brush
+    screen.draw(shapes.rounded_rectangle(-3, -5, 42, 18, 3))
+
+    screen.brush = brushes.color(255, 255, 255)
+    screen.text(clock_text, 3, 0)
 
 # draw a user action button with button name and label
 
