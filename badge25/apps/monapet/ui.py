@@ -1,6 +1,6 @@
 import math
-import time
 from badgeware import screen, brushes, SpriteSheet, shapes, PixelFont, io
+from clock import current_time_text
 
 # load user interface sprites
 icons = SpriteSheet("assets/icons.png", 4, 1)
@@ -28,7 +28,7 @@ stats_icons = {
 outline_brush = brushes.color(20, 30, 40, 150)
 outline_brush_bold = brushes.color(20, 30, 40, 200)
 
-clock_text = "--:--"
+clock_text = None
 clock_updated_at = -1000
 
 # draw the background scenery
@@ -102,9 +102,11 @@ def draw_clock():
     global clock_text, clock_updated_at
 
     if io.ticks - clock_updated_at >= 1000:
-        now = time.localtime()
-        clock_text = "{:02d}:{:02d}".format(now[3], now[4])
+        clock_text = current_time_text()
         clock_updated_at = io.ticks
+
+    if clock_text is None:
+        return
 
     screen.brush = outline_brush
     screen.draw(shapes.rounded_rectangle(-3, -5, 42, 18, 3))

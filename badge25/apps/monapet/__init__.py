@@ -9,12 +9,55 @@ import ui
 from mona import Mona
 from badgeware import io, run, State
 
+try:
+    import network
+    import ntptime
+except ImportError:
+    network = None
+    ntptime = None
+
 mona = Mona(82)  # create mona!
 
 # speed at which each statistic goes from 100% to 0%
 happiness_duration = 1800
 hunger_duration = 1200
 cleanliness_duration = 2400
+
+wifi = None
+wifi_started_at = None
+clock_synced = False
+wifi_ssid = None
+wifi_password = None
+
+
+def clock_update():
+    global wifi, wifi_started_at, clock_synced
+
+    if clock_synced or network is None or ntptime is None:
+        return
+
+    if wifi is None:
+        wifi = network.WLAN(network.STA_IF)
+        wifi.active(True)
+        wifi_started_at = io.ticks
+        if wifi.isconnected():
+            return
+        if wifi_ssid and wifi_password:
+            wifi.connect(wifi_ssid, wifi_password)
+        return
+
+    if wifi.isconnected():
+        try:
+            ntptime.settime()
+            clock_synced = True
+        except OSError:
+            wifi_started_at = io.ticks
+        return
+
+    if io.ticks - wifi_started_at >= 15000:
+        wifi.disconnect()
+        wifi.connect(wifi_ssid, wifi_password)
+        wifi_started_at = io.ticks
 
 
 def game_update():
@@ -69,6 +112,8 @@ def game_update():
 
 
 def update():
+    clock_update()
+
     # update the game state based on user input and timed events
     game_update()
 
@@ -98,6 +143,29 @@ def update():
 
 
 def init():
+    global clock_synced, wifi_ssid, wifi_password
+
+    try:
+        import time
+        clock_synced = time.gmtime()[0] >= 2025
+    except (ImportError, OSError):
+        clock_synced = False
+
+    if not clock_synced:
+        added_root = False
+        try:
+            sys.path.insert(0, "/")
+            added_root = True
+            from secrets import WIFI_PASSWORD, WIFI_SSID
+            wifi_ssid = WIFI_SSID
+            wifi_password = WIFI_PASSWORD
+        except ImportError:
+            wifi_ssid = None
+            wifi_password = None
+        finally:
+            if added_root:
+                sys.path.pop(0)
+
     state = {
         "happy": 100,
         "hunger": 100,
